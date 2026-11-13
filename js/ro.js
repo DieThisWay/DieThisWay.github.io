@@ -49,7 +49,7 @@
             fieldLogin: "Login", fieldPassword: "Parolă", fieldPassword2: "Repetă parola",
             fieldInvite: "Cod de invitație", fieldEmail: "E-mail (opțional)",
             fieldOldPassword: "Parola actuală", fieldNewPassword: "Parola nouă",
-            phLogin: "ex. tomas", phPassword: "••••••", phInvite: "XXXX-XXXX", phEmail: "tu@mail.com",
+            phLogin: "ex. tomas", phPassword: "••••••", phInvite: "JOPA-XXXX-XXXX", phEmail: "tu@mail.com",
             hintLogin: "3–10 litere latine sau cifre", hintPassword: "4–10 caractere. Este și codul tău de securitate din joc.",
             btnSignIn: "Autentificare", btnSignUp: "Creează cont", btnChange: "Schimbă parola", btnCreateInvite: "Creează cod",
             noAccount: "Nu ai cont?", haveAccount: "Ai deja unul?", toSignUp: "Înregistrează-te", toSignIn: "Autentifică-te",
