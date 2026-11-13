@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BuddyBikeRide</title>
+    <meta name="description" content="BuddyBikeRide — приложение для групповых поездок на байке: друзья на одной карте с грунтовками, маршрутами, офлайн-картами и SOS.">
+    <meta name="theme-color" content="#0c0a11">
+    <meta property="og:title" content="BuddyBikeRide">
+    <meta property="og:description" content="Групповые поездки на байке: все на одной карте, грунтовки, маршруты, офлайн-карты и SOS.">
+    <meta property="og:image" content="https://diethisway.github.io/img/bbr/cover.webp">
+    <link rel="icon" href="/img/bbr/icon.webp" type="image/webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=MedievalSharp&display=swap">
+    <link rel="stylesheet" href="/css/site.css">
+    <link rel="stylesheet" href="/css/project.css">
+    <script src="/js/common.js" defer></script>
+    <script src="/js/ro.js" defer></script>
+    <script src="/js/bbr.js" defer></script>
+</head>
+<body class="project" style="--project-accent:#8b63ff">
+    <header class="site-header">
+        <div class="page">
+            <a class="brand" href="/">DieThisWay</a>
+            <nav class="header-nav" aria-label="Навигация" data-i18n-aria="ariaNav">
+                <a class="back-link" href="/" aria-label="Все проекты" data-i18n-aria="backToProjects"><span aria-hidden="true">←</span> <span data-i18n="backToProjects">Все проекты</span></a>
+                <div class="lang-switch" role="group" aria-label="Язык" data-i18n-aria="ariaLang">
+                    <button type="button" data-lang="ru">RU</button>
+                    <button type="button" data-lang="ro">RO</button>
+                    <button type="button" data-lang="en">EN</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page bbr-hero">
+            <div class="hero-copy">
+                <img class="app-icon" src="/img/bbr/icon.webp" width="88" height="88" alt="">
+                <h1>BuddyBikeRide</h1>
+                <p class="hero-lead" data-i18n="bbrLead">Катайтесь с друзьями и не теряйтесь: все видны на одной карте, маршрут всегда под рукой, карты работают без интернета, а в беде выручит кнопка SOS.</p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="#get" data-i18n="bbrTry">Как попробовать</a>
+                    <a class="btn" href="https://diethisway.github.io/BuddyBikeRide-maps/editor/" target="_blank" rel="noopener"><span data-i18n="bbrEditorBtn">Редактор маршрутов</span> <span aria-hidden="true">↗</span></a>
+                </div>
+                <div class="chips" id="heroChips"></div>
+            </div>
+            <div class="hero-shots" aria-hidden="true">
+                <img class="phone phone-back" src="/img/bbr/s-night.webp" alt="" width="560" height="1161">
+                <img class="phone phone-front" src="/img/bbr/s-map.webp" alt="" width="560" height="1161">
+            </div>
+        </section>
+
+        <section class="page bbr-section" aria-labelledby="featuresTitle">
+            <h2 id="featuresTitle" data-i18n="bbrFeatures">Что умеет</h2>
+            <div class="features" id="features"></div>
+        </section>
+
+        <section class="page bbr-section" aria-labelledby="shotsTitle">
+            <h2 id="shotsTitle" data-i18n="bbrShots">Как это выглядит</h2>
+            <div class="gallery" id="gallery"></div>
+        </section>
+
+        <section class="page bbr-section" aria-labelledby="landscapeTitle">
+            <h2 id="landscapeTitle" data-i18n="bbrLandscape">На руле: горизонтальный режим</h2>
+            <p class="section-lead" data-i18n="bbrLandscapeText">Телефон на креплении лежит боком, и приложение тоже: полоса с данными сверху, SOS и сигналы под большим пальцем справа, огромная кнопка «Начать поездку» внизу.</p>
+            <div class="landscape" id="landscape"></div>
+        </section>
+
+        <section class="page bbr-section" aria-labelledby="editorTitle">
+            <div class="callout">
+                <div>
+                    <h2 id="editorTitle" data-i18n="bbrEditorTitle">Редактор маршрутов на компьютере</h2>
+                    <p data-i18n="bbrEditorText">Рисуй и правь «Мои маршруты» на большом экране. Заходи тем же Google-аккаунтом, что в приложении, и маршруты появятся на телефоне. Есть магнит к дорогам, импорт и экспорт GPX, русский, румынский и английский языки и ночной режим.</p>
+                </div>
+                <a class="btn btn-primary" href="https://diethisway.github.io/BuddyBikeRide-maps/editor/" target="_blank" rel="noopener"><span data-i18n="bbrEditorOpen">Открыть редактор</span> <span aria-hidden="true">↗</span></a>
+            </div>
+        </section>
+
+        <section class="page bbr-section" id="get" aria-labelledby="getTitle">
+            <div class="callout callout--accent">
+                <div>
+                    <h2 id="getTitle" data-i18n="bbrGetTitle">Как попробовать</h2>
+                    <p data-i18n="bbrGetText">Приложение пока для своих и не лежит в магазине. Напиши нам в Discord, и мы пришлём установку и код группы.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="page">
+            <span>© DieThisWay</span>
+            <button type="button" class="footer-link" data-discord data-i18n="writeMe">💬 Написать мне в Discord</button>
+            <span data-i18n="bbrCredits">Данные карты © участники OpenStreetMap (ODbL), тайлы OpenFreeMap.</span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13201a">
+<title>Hamster Massacre</title>
+<meta name="description" content="Онлайн-драка хомяков на одном экране: прыгай сопернику на голову.">
+<link rel="icon" href="/favicon-hamster.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@600;800;900&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Вечерний лес и деревянные таблички из самой игры: одна колонка, скриншоты в рамках-досках */
+:root {
+  color-scheme: dark;
+  --forest: #13201a;        /* фон: лес в сумерках */
+  --forest-deep: #0c1510;
+  --canopy: #1f3a27;
+  --wood: #6e4221;          /* доска таблички */
+  --wood-dark: #4a2b14;
+  --wood-light: #9a6633;
+  --gold: #d4a84b;          /* ободок, как у таблички «Карта» */
+  --gold-light: #f6dc8e;
+  --title: #ffa04d;         /* оранжевые надписи меню */
+  --title-hot: #ffd27a;
+  --blood: #e53935;         /* «Massacre» */
+  --ink: #2b1a10;           /* обводка надписей */
+  --cream: #fff3d6;         /* основной текст */
+  --cream-dim: #d9c7a5;
+  --font-display: "Rubik", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.3rem;
+  --step-2: 1.75rem;
+  --step-3: clamp(2rem, 4.2vw, 2.9rem);
+  --step-4: clamp(2.8rem, 8vw, 5.4rem);
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(60rem 26rem at 15% -4rem, #2c5233 0%, transparent 70%),
+    radial-gradient(50rem 22rem at 90% -6rem, #24452c 0%, transparent 70%),
+    linear-gradient(180deg, var(--canopy) 0%, var(--forest) 28rem, var(--forest-deep) 100%);
+  background-color: var(--forest);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+
+.page { max-width: 1140px; margin: 0 auto; padding-inline: 20px; padding-block: 0 48px; }
+
+/* Надписи как в игре: жирные, оранжевые, с тёмной обводкой */
+.outlined {
+  font-family: var(--font-display);
+  font-weight: 900;
+  color: var(--title);
+  -webkit-text-stroke: 0.09em var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 0.06em 0 var(--ink);
+  letter-spacing: 0.01em;
+}
+h2 { font-size: var(--step-3); line-height: 1.1; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--font-display); font-weight: 800; font-size: var(--step-1); margin: 0; color: var(--title-hot); text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--title-hot); }
+:focus-visible { outline: 3px solid var(--gold-light); outline-offset: 3px; border-radius: 6px; }
+
+/* Деревянная табличка: рамка с золотым ободком */
+.board {
+  background: linear-gradient(180deg, #7a4a24, var(--wood) 40%, #653d1e);
+  border: 4px solid var(--gold);
+  border-radius: 14px;
+  box-shadow: 0 10px 0 -2px rgba(0,0,0,.25), 0 18px 40px rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.08);
+}
+
+/* ---------- Шапка: вывеска на верёвках ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 40px; align-items: center; padding-block: 0 24px; }
+.sign-wrap { position: relative; padding-top: 96px; justify-self: center; width: min(100%, 460px); }
+.rope { position: absolute; top: 0; width: 6px; height: 104px; background: #8c6638; border-radius: 3px; }
+.rope.l { left: 18%; } .rope.r { right: 18%; }
+.sign {
+  position: relative; text-align: center; padding: 22px 18px 26px; container-type: inline-size;
+  transform-origin: 50% -96px; animation: swing 4.2s ease-in-out infinite;
+}
+@keyframes swing { 0%,100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+/* Размер надписи - от ширины самой вывески, чтобы «Massacre» всегда помещалось */
+.sign h1 { margin: 0; font-size: clamp(2.2rem, 16.5cqi, 5.4rem); line-height: 0.95; }
+.sign h1 span { display: block; }
+.sign h1 .red { color: var(--blood); }
+.tagline { margin-top: 26px; font-size: var(--step-1); font-weight: 700; text-align: center; color: var(--cream); text-wrap: balance; }
+.tagline b { color: var(--title-hot); }
+
+.shot-frame { padding: 10px; border-radius: 16px; }
+.shot-frame img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.hero-shot { transform: rotate(0.6deg); }
+
+.platforms { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 22px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px;
+  font-weight: 800; font-size: var(--step--1); letter-spacing: 0.02em;
+  background: rgba(0,0,0,.28); border: 2px solid rgba(246,220,142,.35); color: var(--cream-dim);
+}
+.chip .soon { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-light); }
+.chip.main { background: var(--title); color: var(--ink); border-color: var(--ink); box-shadow: 0 4px 0 var(--ink); text-decoration: none; }
+.chip.main:hover { background: var(--title-hot); }
+
+/* ---------- Парад хомяков ---------- */
+.parade { display: flex; justify-content: center; align-items: flex-end; gap: clamp(4px, 1.6vw, 18px); flex-wrap: wrap; padding-block: 28px 8px; border-bottom: 6px solid #2f6b2f; }
+.parade svg { width: clamp(30px, 5vw, 52px); height: auto; animation: hop 1.6s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes hop { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-14px); } }
+.bubble-wrap { position: relative; }
+.bubble {
+  position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -6px);
+  background: #fff; color: var(--ink); border: 2px solid var(--ink); border-radius: 10px;
+  font-weight: 800; font-size: 0.8rem; padding: 0 7px; white-space: nowrap;
+}
+
+/* ---------- Секции ---------- */
+section { padding-block: 64px 0; }
+.section-head { display: grid; gap: 10px; margin-bottom: 28px; max-width: 46rem; }
+.section-head p { color: var(--cream-dim); font-size: var(--step-1); }
+
+/* Правила */
+.rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.rule { padding: 22px; display: grid; gap: 10px; align-content: start; }
+.rule p { color: var(--cream); }
+.rule svg { width: 100%; height: 120px; }
+
+/* Галерея */
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.gallery figure { margin: 0; display: grid; gap: 10px; }
+.gallery button { padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 16px; }
+.gallery figcaption { display: grid; gap: 2px; padding-inline: 6px; }
+.gallery figcaption b { font-family: var(--font-display); font-weight: 800; color: var(--title-hot); font-size: var(--step-1); }
+.gallery figcaption span { color: var(--cream-dim); }
+.gallery .wide { grid-column: 1 / -1; }
+
+/* Что внутри: карточки как в игре */
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.feat { padding: 18px 20px 20px; display: grid; gap: 8px; align-content: start; }
+.feat .stat {
+  justify-self: start; display: inline-flex; align-items: baseline; gap: 8px;
+  background: #24130a; border: 2px solid var(--gold); border-radius: 8px; padding: 2px 12px;
+  font-family: var(--font-display); font-weight: 900; color: var(--title); font-variant-numeric: tabular-nums;
+}
+.feat .stat small { font-family: var(--font-body); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream-dim); }
+.feat .stat strong { font-size: var(--step-2); line-height: 1.2; }
+.feat p { color: var(--cream); }
+
+/* Бонусы и опасности */
+.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.list-board { padding: 22px; display: grid; gap: 14px; }
+.item { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: center; }
+.item svg { width: 56px; height: 56px; }
+.item b { display: block; color: var(--title-hot); font-family: var(--font-display); font-weight: 800; }
+.item span { color: var(--cream); }
+.penalty { color: #ff8a7a; font-weight: 800; }
+
+/* Управление */
+.keys { display: grid; gap: 10px; }
+.keyrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.kbd { display: inline-flex; gap: 6px; flex-wrap: wrap; min-width: 11rem; }
+kbd {
+  font-family: var(--font-body); font-weight: 800; font-size: 0.9rem; color: var(--ink);
+  background: #f3e3c3; border: 2px solid #8a7a5a; border-bottom-width: 4px; border-radius: 7px; padding: 0 9px;
+}
+kbd.pad { color: #fff; border-radius: 999px; border-color: rgba(0,0,0,.45); text-shadow: 0 1px 0 rgba(0,0,0,.5); }
+
+/* Что дальше: таблички с планами */
+.roadmap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.plan { padding: 20px 22px 22px; display: grid; gap: 12px; align-content: start; }
+.plan ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.plan li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 10px; }
+.plan li::before { content: ""; width: 10px; height: 10px; margin-top: 0.55em; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px var(--ink); }
+.plan li b { color: var(--title-hot); }
+.plan .tag { justify-self: start; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); background: var(--gold-light); border-radius: 999px; padding: 2px 10px; }
+.roadmap-note { margin-top: 18px; color: var(--cream-dim); }
+@media (max-width: 1040px) { .roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .roadmap { grid-template-columns: minmax(0, 1fr); } }
+
+/* Переключатель языка RU / EN */
+.lang-switch { display: inline-flex; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(0,0,0,.3); border: 2px solid rgba(246,220,142,.3); }
+.lang-switch button {
+  font: 800 0.8rem/1 var(--font-body); letter-spacing: 0.06em; padding: 6px 11px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--cream-dim); cursor: pointer;
+}
+.lang-switch button[aria-pressed="true"] { background: var(--title); color: var(--ink); }
+.topbar-right { display: inline-flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+.langbar { display: flex; justify-content: flex-end; padding-block: 14px 0; }
+
+/* Подвал */
+.footer-discord { font: inherit; padding: 0; border: 0; background: none; color: var(--title); font-weight: 800; cursor: pointer; }
+.footer-discord:hover { color: var(--title-hot); text-decoration: underline; }
+.footer-toast { position: fixed; left: 50%; bottom: 24px; z-index: 50; max-width: min(92vw, 520px); padding: 10px 16px; border-radius: 12px; background: var(--ink); color: var(--cream-dim); border: 2px solid rgba(246,220,142,.4); font-weight: 700; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+.footer-toast.show { opacity: 1; transform: translate(-50%, 0); }
+footer { margin-top: 72px; padding-top: 24px; border-top: 2px solid rgba(212,168,75,.3); display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; color: var(--cream-dim); font-size: var(--step--1); }
+
+/* Просмотр скриншота */
+.viewer { position: fixed; inset: 0; background: rgba(5,10,7,.88); display: grid; place-items: center; padding: 20px; z-index: 10; }
+.viewer img { max-width: min(1280px, 100%); max-height: 86vh; border: 4px solid var(--gold); border-radius: 10px; }
+.viewer .close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px; }
+.btn {
+  font: 800 var(--step--1)/1 var(--font-body); padding: 12px 16px; border-radius: 10px; cursor: pointer;
+  background: var(--title); color: var(--ink); border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+}
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .rules, .features { grid-template-columns: minmax(0, 1fr); }
+  .gallery, .split { grid-template-columns: minmax(0, 1fr); }
+  .hero-shot { transform: none; }
+}
+@media (min-width: 861px) and (max-width: 1040px) {
+  .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sign, .parade svg { animation: none; }
+}
+
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+
+/* Полоска сайта: назад ко всем проектам */
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 14px; }
+.topbar a { text-decoration: none; font-weight: 800; color: var(--cream-dim); }
+.topbar a:hover { color: var(--title-hot); }
+.topbar .brand { font-family: var(--font-display); font-weight: 900; color: var(--cream); letter-spacing: 0.02em; }
+</style>
+</head>
+<body>
+
+
+<div class="page">
+  <nav class="topbar" aria-label="Сайт">
+    <a class="brand" href="/">DieThisWay</a>
+    <span class="topbar-right">
+      <div class="lang-switch" role="group" aria-label="Язык">
+        <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" data-lang="ro" aria-pressed="false">RO</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <a href="/">← Все проекты</a>
+    </span>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <div class="sign-wrap">
+        <div class="rope l"></div><div class="rope r"></div>
+        <div class="sign board">
+          <h1 class="outlined"><span>Hamster</span><span class="red">Massacre</span></h1>
+        </div>
+      </div>
+      <p class="tagline">Онлайн-драка хомяков на одном экране. <b>Прыгни сопернику на голову</b>, пока он не прыгнул на твою.</p>
+      <div class="platforms" aria-label="Где играть">
+        <a class="chip main" href="#gallery">Посмотреть игру</a>
+        <span class="chip">Steam <span class="soon">скоро</span></span>
+        <span class="chip">itch.io <span class="soon">скоро</span></span>
+      </div>
+    </div>
+    <div class="shot-frame board hero-shot">
+      <img src="/img/hamster/forest.jpg" alt="Матч в лесу: восемь хомяков на ветках, надпись «Kotleta — Двойное убийство!», по бокам карточки игроков" width="1280" height="720">
+    </div>
+  </header>
+
+  <div class="parade" id="parade" aria-hidden="true"></div>
+
+  <section aria-labelledby="rules-title">
+    <div class="section-head">
+      <h2 id="rules-title" class="outlined">Одно правило</h2>
+      <p>Раздавить можно только сверху. Всё остальное — гонка по веткам за чужой головой.</p>
+    </div>
+    <div class="rules">
+      <article class="rule board">
+        <svg viewBox="0 0 220 120" role="img" aria-label="Хомяк прыгает на голову другому">
+          <path d="M40 104 Q 70 4 118 48" fill="none" stroke="#fff3d6" stroke-width="3" stroke-dasharray="6 7" stroke-linecap="round"/>
+          <g transform="translate(26 70) scale(0.9)" class="ham" data-color="#e3b778"></g>
+          <g transform="translate(110 54) scale(1.25)" class="ham" data-color="#e53935"></g>
+          <path d="M150 50 l4 -9 l4 9 l9 1 l-7 6 l2 9 l-8 -5 l-8 5 l2 -9 l-7 -6 z" fill="#ffd54f" stroke="#2b1a10" stroke-width="1.5"/>
+        </svg>
+        <h3>Дави сверху</h3>
+        <p>Приземлись сопернику на голову — он лопается, тебе очко. Через секунду он появится подальше от тебя.</p>
+      </article>
+      <article class="rule board">
+        <svg viewBox="0 0 220 120" role="img" aria-label="Два хомяка проходят друг сквозь друга">
+          <g transform="translate(62 46) scale(1.3)" class="ham" data-color="#1e88e5"></g>
+          <g transform="translate(96 46) scale(1.3)" class="ham" data-color="#66bb6a" style="opacity:.75"></g>
+          <path d="M30 112 H 190" stroke="#2f6b2f" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+        <h3>Сбоку не страшно</h3>
+        <p>Сбоку и снизу хомяки проходят друг сквозь друга. Опасен только тот, кто выше тебя.</p>
+      </article>
+      <article class="rule board">
+        <svg viewBox="0 0 220 120" role="img" aria-label="Хомяк уходит за край экрана и выходит с другой стороны">
+          <rect x="18" y="14" width="184" height="92" rx="8" fill="none" stroke="#d4a84b" stroke-width="3" stroke-dasharray="8 6"/>
+          <g transform="translate(-4 50) scale(1.1)" class="ham" data-color="#ec407a"></g>
+          <g transform="translate(184 50) scale(1.1)" class="ham" data-color="#ec407a" style="opacity:.55"></g>
+          <path d="M70 60 H 150 m -10 -8 l 10 8 l -10 8" fill="none" stroke="#fff3d6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>Края нет</h3>
+        <p>Убежал за край экрана — выбежал с другой стороны. Спрятаться негде, догнать можно всегда.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="gallery" aria-labelledby="gallery-title">
+    <div class="section-head">
+      <h2 id="gallery-title" class="outlined">Как это выглядит</h2>
+      <p>Настоящие кадры из игры. Нажми на картинку, чтобы открыть крупно.</p>
+    </div>
+    <div class="gallery">
+      <figure class="wide">
+        <button type="button" data-full="/img/hamster/castle.jpg" aria-label="Открыть скриншот замка крупно">
+          <span class="shot-frame board" style="display:block"><img src="/img/hamster/castle.jpg" alt="Ночной замок: факел на стене бьёт струёй огня над каменным карнизом, вокруг хомяки и цепи" width="1280" height="720"></span>
+        </button>
+        <figcaption><b>Замок</b><span>Ночь, подвесные плиты на цепях и факелы, которые плюются огнём. Серии убийств объявляются на весь экран.</span></figcaption>
+      </figure>
+      <figure>
+        <button type="button" data-full="/img/hamster/lobby.jpg" aria-label="Открыть скриншот лобби крупно">
+          <span class="shot-frame board" style="display:block"><img src="/img/hamster/lobby.jpg" alt="Лобби на дереве: боты, время и убийства, выбор карты, бонусы, опасности и цвет" width="1280" height="720"></span>
+        </button>
+        <figcaption><b>Лобби</b><span>Хост выбирает карту, время, лимит убийств, бонусы и опасности. Каждый выбирает свободный цвет.</span></figcaption>
+      </figure>
+      <figure>
+        <button type="button" data-full="/img/hamster/podium.jpg" aria-label="Открыть скриншот пьедестала крупно">
+          <span class="shot-frame board" style="display:block"><img src="/img/hamster/podium.jpg" alt="Пьедестал: три хомяка на тумбах, сверху звания матча" width="1280" height="720"></span>
+        </button>
+        <figcaption><b>Пьедестал</b><span>Тройка лучших на тумбах и звания матча: «Мститель», «Любимая мишень», «Растяпа».</span></figcaption>
+      </figure>
+      <figure>
+        <button type="button" data-full="/img/hamster/menu.jpg" aria-label="Открыть скриншот меню крупно">
+          <span class="shot-frame board" style="display:block"><img src="/img/hamster/menu.jpg" alt="Главное меню: кнопки на ветках большого дерева и вывеска Hamster Massacre" width="1280" height="720"></span>
+        </button>
+        <figcaption><b>Меню</b><span>Кнопки растут на ветках. По земле бегают хомяки, твой подписан ником.</span></figcaption>
+      </figure>
+      <figure>
+        <button type="button" data-full="/img/hamster/help.jpg" aria-label="Открыть скриншот обучения крупно">
+          <span class="shot-frame board" style="display:block"><img src="/img/hamster/help.jpg" alt="Краткое обучение: управление, как давить, бонусы" width="1280" height="720"></span>
+        </button>
+        <figcaption><b>Как играть</b><span>Всё обучение — три карточки за вопросиком в углу меню.</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="features-title">
+    <div class="section-head">
+      <h2 id="features-title" class="outlined">Что внутри</h2>
+    </div>
+    <div class="features">
+      <article class="feat board"><span class="stat"><strong>8</strong><small>игроков</small></span><h3>Онлайн с друзьями</h3><p>Лобби в Steam: друг видит твою игру и заходит в один клик. По локальной сети или IP тоже можно.</p></article>
+      <article class="feat board"><span class="stat"><strong>2</strong><small>карты</small></span><h3>Лес и Замок</h3><p>Ветки огромных деревьев днём и каменные карнизы ночного замка. У каждой карты своя музыка и звуки.</p></article>
+      <article class="feat board"><span class="stat"><strong>10</strong><small>цветов</small></span><h3>Свой хомяк</h3><p>Выбери цвет шерсти. Если твой занят, игра даст свободный, и его можно сменить в лобби.</p></article>
+      <article class="feat board"><span class="stat"><strong>999</strong><small>убийств</small></span><h3>Свои условия</h3><p>Матч на время, до нужного числа убийств или с обоими условиями сразу. Нет друзей онлайн — добавь ботов.</p></article>
+      <article class="feat board"><span class="stat"><strong>8</strong><small>званий</small></span><h3>Пьедестал</h3><p>После матча — тройка лучших и звания: «Самая длинная серия», «Мститель», «Неуловимый», «Пацифист» и другие.</p></article>
+      <article class="feat board"><span class="stat"><strong>«Пи!»</strong><small>писк</small></span><h3>Дразнилка</h3><p>Отдельная кнопка, чтобы пискнуть на соперника после удачного прыжка. Слышат все.</p></article>
+    </div>
+  </section>
+
+  <section aria-labelledby="extras-title">
+    <div class="section-head">
+      <h2 id="extras-title" class="outlined">Бонусы и опасности</h2>
+      <p>И то, и другое хост включает в лобби отдельными галочками.</p>
+    </div>
+    <div class="split">
+      <div class="list-board board">
+        <h3>Бонусы</h3>
+        <div class="item">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="rgba(255,213,79,.18)" stroke="#fff3d6" stroke-width="2"/><path d="M31 12 L19 31 h9 l-3 13 l12 -20 h-9 z" fill="#ffd54f" stroke="#2b1a10" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <div><b>Скорость</b><span>Бегаешь быстрее, 6 секунд.</span></div>
+        </div>
+        <div class="item">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="rgba(225,245,254,.16)" stroke="#fff3d6" stroke-width="2"/><path d="M27 30 C 18 30, 13 24, 12 18 C 18 21, 22 20, 27 25 Z M29 30 C 38 30, 43 24, 44 18 C 38 21, 34 20, 29 25 Z" fill="#e1f5fe" stroke="#2b1a10" stroke-width="1.5"/><path d="M22 38 l6 -6 l6 6" fill="none" stroke="#e1f5fe" stroke-width="3" stroke-linecap="round"/></svg>
+          <div><b>Двойной прыжок</b><span>Ещё один прыжок прямо в воздухе, 8 секунд.</span></div>
+        </div>
+        <div class="item">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="rgba(79,195,247,.2)" stroke="#fff3d6" stroke-width="2"/><path d="M28 13 L40 18 V 28 C 40 36, 34 41, 28 44 C 22 41, 16 36, 16 28 V 18 Z" fill="#4fc3f7" stroke="#2b1a10" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <div><b>Щит</b><span>Выдержит один прыжок на голову, 12 секунд.</span></div>
+        </div>
+      </div>
+      <div class="list-board board">
+        <h3>Опасности <span class="penalty">−1 очко</span></h3>
+        <div class="item">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><ellipse cx="28" cy="33" rx="11" ry="13" fill="#b5793a" stroke="#3a2314" stroke-width="2"/><path d="M15 26 C 15 16, 41 16, 41 26 Z" fill="#6b4423" stroke="#3a2314" stroke-width="2"/><path d="M28 17 l2 -6" stroke="#3a2314" stroke-width="3" stroke-linecap="round"/></svg>
+          <div><b>Жёлуди</b><span>Лес. Качаются в кроне и падают сквозь ветки. Тень на земле подскажет, куда.</span></div>
+        </div>
+        <div class="item">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><path d="M6 40 L10 26 L14 33 L17 20 L22 30 L26 17 L30 29 L35 19 L38 31 L43 25 L44 40 Z" fill="#3b2a1e" stroke="#3a2314" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 40 C 8 30, 40 28, 44 34 L 52 40 L 44 44 H 10 Z" fill="#7a5236" stroke="#3a2314" stroke-width="1.5"/><circle cx="51" cy="39" r="2.4" fill="#222"/><circle cx="43" cy="35" r="1.8" fill="#222"/></svg>
+          <div><b>Ёжик</b><span>Лес. Идёт по земле от края до края. Перепрыгни или убегай.</span></div>
+        </div>
+        <div class="item">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><rect x="4" y="42" width="48" height="6" rx="2" fill="#4a4d55"/><path d="M6 42 L12 22 L18 42 M18 42 L24 22 L30 42 M30 42 L36 22 L42 42 M42 42 L48 22 L52 42" fill="#b0b5be" stroke="#2b1a10" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <div><b>Шипы</b><span>Замок. Кусок пола светится красным, через секунду выскакивают шипы.</span></div>
+        </div>
+        <div class="item">
+          <svg viewBox="0 0 56 56" aria-hidden="true"><rect x="5" y="30" width="7" height="18" rx="2" fill="#6b4423"/><path d="M10 30 C 22 22, 38 24, 52 34 C 38 32, 22 34, 10 34 Z" fill="#ff6a1a"/><path d="M12 31 C 22 27, 34 28, 44 33 C 34 32, 22 33, 12 33 Z" fill="#ffd36b"/></svg>
+          <div><b>Огонь</b><span>Замок. Факел на стене разгорается и бьёт струёй пламени над карнизом.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="controls-title">
+    <div class="section-head">
+      <h2 id="controls-title" class="outlined">Управление</h2>
+      <p>Клавиатура или геймпад — меню тоже проходится геймпадом.</p>
+    </div>
+    <div class="list-board board keys">
+      <div class="keyrow"><span class="kbd"><kbd>A</kbd><kbd>D</kbd><kbd class="pad" style="background:#8f8f8f">Стик</kbd></span><span>Бежать</span></div>
+      <div class="keyrow"><span class="kbd"><kbd>W</kbd><kbd>Пробел</kbd><kbd class="pad" style="background:#5cb85c">A</kbd></span><span>Прыжок</span></div>
+      <div class="keyrow"><span class="kbd"><kbd>S</kbd><kbd>↓</kbd></span><span>Спрыгнуть с ветки, падать быстрее</span></div>
+      <div class="keyrow"><span class="kbd"><kbd>E</kbd><kbd class="pad" style="background:#d9a91a">Y</kbd></span><span>Пискнуть на соперников</span></div>
+      <div class="keyrow"><span class="kbd"><kbd>Esc</kbd><kbd class="pad" style="background:#8f8f8f">Start</kbd></span><span>Пауза и громкость</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="roadmap-title">
+    <div class="section-head">
+      <h2 id="roadmap-title" class="outlined">Что дальше</h2>
+      <p>Над этим работаем в следующей версии, 3.0. Список живой: что-то появится раньше, что-то позже.</p>
+    </div>
+    <div class="roadmap">
+      <article class="plan board">
+        <span class="tag">Карты</span>
+        <h3>Новые арены</h3>
+        <ul>
+          <li><span><b>Космос</b> без пола: упал вниз — вылетел сверху.</span></li>
+          <li><span><b>Ледяная пещера</b> со скользким полом.</span></li>
+          <li><span><b>Пещера с лавой</b>: пол убивает, прыгаем по камням.</span></li>
+          <li><span><b>Клетка хомяка</b> с колесом, которое крутится и швыряет.</span></li>
+          <li><span><b>Кухня</b> с полками и банками, за которыми можно спрятаться.</span></li>
+          <li><span>Карта с <b>движущимися платформами</b> вверх-вниз и влево-вправо.</span></li>
+        </ul>
+      </article>
+      <article class="plan board">
+        <span class="tag">Режимы</span>
+        <h3>Не только «дави всех»</h3>
+        <ul>
+          <li><span><b>Король горы</b>: очки капают, пока стоишь в светящейся зоне.</span></li>
+          <li><span><b>Семечка</b>: у кого она, тот копит очки. Раздавишь его — семечка твоя.</span></li>
+          <li><span><b>Командный бой</b> 2 на 2 и 4 на 4.</span></li>
+        </ul>
+      </article>
+      <article class="plan board">
+        <span class="tag">Бонусы и опасности</span>
+        <h3>Больше хаоса</h3>
+        <ul>
+          <li><span><b>Гигант</b>: вдвое больше на 8 секунд. Давить легче, но и попасть по тебе проще.</span></li>
+          <li><span><b>Пружина</b>: очень высокий прыжок.</span></li>
+          <li><span><b>Призрак</b>: соперники тебя почти не видят.</span></li>
+          <li><span><b>Магнит</b>: бонусы сами летят к тебе.</span></li>
+          <li><span>Качающийся <b>маятник</b> в замке и <b>осиное гнездо</b> в лесу.</span></li>
+        </ul>
+      </article>
+      <article class="plan board">
+        <span class="tag">Компания</span>
+        <h3>Веселее вместе</h3>
+        <ul>
+          <li><span><b>Эмоции</b> над головой: злость, смех, «ГГ».</span></li>
+          <li><span><b>Разминка в лобби</b>: можно давить друг друга, пока ждёте старта.</span></li>
+          <li><span><b>Игра за одним компьютером</b> с несколькими геймпадами, вместе с онлайн-игроками.</span></li>
+          <li><span><b>Голосование</b> за следующую карту на пьедестале.</span></li>
+        </ul>
+      </article>
+      <article class="plan board">
+        <span class="tag">Хомяк</span>
+        <h3>Свой стиль и история</h3>
+        <ul>
+          <li><span><b>Шапки</b>: колпак, рожки, пиратская шляпа.</span></li>
+          <li><span><b>Корона</b> победителю прошлого матча — пусть все охотятся на него.</span></li>
+          <li><span><b>Статистика</b> за всё время: матчи, победы, лучшая серия.</span></li>
+          <li><span><b>Повтор</b> последнего убийства в замедлении перед пьедесталом.</span></li>
+        </ul>
+      </article>
+      <article class="plan board">
+        <span class="tag">Steam</span>
+        <h3>Своя страница</h3>
+        <ul>
+          <li><span>Своё место в <b>Steam</b>, чтобы игру можно было найти и добавить в желаемое.</span></li>
+          <li><span>Ввод ника <b>с геймпада</b> через экранную клавиатуру Steam.</span></li>
+        </ul>
+      </article>
+    </div>
+    <p class="roadmap-note">Есть идея? Предлагай в нашем Discord — лучшие попадут в список.</p>
+  </section>
+
+  <footer>
+    <span>Hamster Massacre · сделано на Godot · 2026</span>
+    <button type="button" class="footer-discord" id="discord-btn">💬 Написать мне в Discord</button>
+    <span>Windows</span>
+  </footer>
+</div>
+
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Скриншот крупно">
+  <button type="button" class="btn close" id="viewer-close">Закрыть</button>
+  <img id="viewer-img" alt="">
+</div>
+
+<script>
+// Хомяк из игры: шерсть умножается на цвет игрока (как self_modulate в Godot), детали поверх не красятся
+const SHADES = { fur: 1, head: 0.886, ear: 0.824, side: 0.902 };
+function mul(hex, k) {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => Math.round(v * k));
+  return "rgb(" + ch.join(",") + ")";
+}
+function hamster(color) {
+  const c = k => mul(color, k);
+  const body = "M20 5 C 30 5, 35 12, 35 19 C 35 23, 34 25, 33 26 C 36.5 30, 36.5 38, 33.5 43 C 30.5 47, 25.5 48.5, 20 48.5 C 14.5 48.5, 9.5 47, 6.5 43 C 3.5 38, 3.5 30, 7 26 C 6 25, 5 23, 5 19 C 5 12, 10 5, 20 5 Z";
+  return `
+  <g stroke="#3b2a20" stroke-width="0.8"><circle cx="9" cy="9.5" r="5" fill="${c(SHADES.ear)}"/><circle cx="31" cy="9.5" r="5" fill="${c(SHADES.ear)}"/></g>
+  <path d="${body}" fill="${c(SHADES.fur)}"/>
+  <path d="M11 9 C 14 6.5, 26 6.5, 29 9 C 26 11, 23 12, 20 12 C 17 12, 14 11, 11 9 Z" fill="${c(SHADES.head)}"/>
+  <path d="M6 32 C 5.5 37, 7 42, 10 45 C 8 42, 7.5 37, 8.5 31 Z" fill="${c(SHADES.side)}"/>
+  <path d="M34 32 C 34.5 37, 33 42, 30 45 C 32 42, 32.5 37, 31.5 31 Z" fill="${c(SHADES.side)}"/>
+  <path d="${body}" fill="none" stroke="#3b2a20" stroke-width="0.8" stroke-linejoin="round"/>
+  <circle cx="9" cy="9.5" r="2.8" fill="#F4B6B0"/><circle cx="31" cy="9.5" r="2.8" fill="#F4B6B0"/>
+  <ellipse cx="20" cy="24" rx="11" ry="6" fill="#FBF1E3"/><ellipse cx="20" cy="37.5" rx="9.5" ry="9.5" fill="#FBF1E3"/>
+  <ellipse cx="10.5" cy="22.2" rx="3.3" ry="2" fill="#F7A6A0" opacity="0.85"/><ellipse cx="29.5" cy="22.2" rx="3.3" ry="2" fill="#F7A6A0" opacity="0.85"/>
+  <ellipse cx="14" cy="17" rx="3" ry="3.4" fill="#1f1410"/><ellipse cx="26" cy="17" rx="3" ry="3.4" fill="#1f1410"/>
+  <circle cx="15" cy="15.6" r="1.15" fill="#fff"/><circle cx="27" cy="15.6" r="1.15" fill="#fff"/>
+  <ellipse cx="20" cy="22.2" rx="1.3" ry="0.9" fill="#E88A8A"/>
+  <path d="M18 23.6 Q 19 24.9 20 23.6 Q 21 24.9 22 23.6" fill="none" stroke="#5a3a2a" stroke-width="0.6" stroke-linecap="round"/>
+  <ellipse cx="16.6" cy="31.2" rx="2.2" ry="1.65" fill="#F6C1B6" stroke="#5a3a2a" stroke-width="0.5"/>
+  <ellipse cx="23.4" cy="31.2" rx="2.2" ry="1.65" fill="#F6C1B6" stroke="#5a3a2a" stroke-width="0.5"/>
+  <ellipse cx="13" cy="48.3" rx="3.6" ry="1.7" fill="#F6C1B6" stroke="#5a3a2a" stroke-width="0.5"/>
+  <ellipse cx="27" cy="48.3" rx="3.6" ry="1.7" fill="#F6C1B6" stroke="#5a3a2a" stroke-width="0.5"/>`;
+}
+
+// Хомяки на картинках правил
+document.querySelectorAll("g.ham").forEach(g => { g.innerHTML = hamster(g.dataset.color); });
+
+// Парад всех десяти цветов игры; один пищит
+const COLORS = ["#e3b778", "#e53935", "#fb8c00", "#fdd835", "#66bb6a", "#00acc1", "#1e88e5", "#8e24aa", "#ec407a", "#f5f5f5"];
+const parade = document.getElementById("parade");
+COLORS.forEach((color, i) => {
+  const wrap = document.createElement("div");
+  wrap.className = "bubble-wrap";
+  wrap.innerHTML = `<svg viewBox="0 0 40 51" style="animation-delay:${(i * 0.16).toFixed(2)}s">${hamster(color)}</svg>` +
+    (i === 6 ? '<span class="bubble">Пи!</span>' : "");
+  parade.appendChild(wrap);
+});
+
+// Скриншот крупно
+const viewer = document.getElementById("viewer");
+const viewerImg = document.getElementById("viewer-img");
+let lastButton = null;
+function openViewer(btn) {
+  lastButton = btn;
+  viewerImg.src = btn.dataset.full;
+  viewerImg.alt = btn.querySelector("img").alt;
+  viewer.hidden = false;
+  document.getElementById("viewer-close").focus();
+}
+function closeViewer() {
+  viewer.hidden = true;
+  if (lastButton) lastButton.focus();
+}
+document.querySelectorAll(".gallery button").forEach(b => b.addEventListener("click", () => openViewer(b)));
+document.getElementById("viewer-close").addEventListener("click", closeViewer);
+viewer.addEventListener("click", e => { if (e.target === viewer) closeViewer(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !viewer.hidden) closeViewer(); });
+
+// --- Русский / английский: русский текст в разметке, английский подставляем по точному совпадению фразы ---
+const EN = {
+  "← Все проекты": "← All projects", "Сайт": "Site", "Язык": "Language",
+  "Онлайн-драка хомяков на одном экране.": "A single-screen online hamster brawl.",
+  "Прыгни сопернику на голову": "Jump on your rival's head",
+  ", пока он не прыгнул на твою.": ", before they jump on yours.",
+  "Где играть": "Where to play", "Посмотреть игру": "See the game", "скоро": "soon",
+  "Матч в лесу: восемь хомяков на ветках, надпись «Kotleta — Двойное убийство!», по бокам карточки игроков": "A forest match: eight hamsters on the branches, a “Kotleta — Double kill!” banner and player cards on both sides",
+  "Одно правило": "One rule",
+  "Раздавить можно только сверху. Всё остальное — гонка по веткам за чужой головой.": "You can only squash from above. Everything else is a race through the branches for someone's head.",
+  "Хомяк прыгает на голову другому": "A hamster jumps on another one's head",
+  "Дави сверху": "Stomp from above",
+  "Приземлись сопернику на голову — он лопается, тебе очко. Через секунду он появится подальше от тебя.": "Land on a rival's head: they pop and you score. A second later they respawn away from you.",
+  "Два хомяка проходят друг сквозь друга": "Two hamsters pass through each other",
+  "Сбоку не страшно": "Sides are safe",
+  "Сбоку и снизу хомяки проходят друг сквозь друга. Опасен только тот, кто выше тебя.": "From the side and from below, hamsters pass right through each other. Only the one above you is dangerous.",
+  "Хомяк уходит за край экрана и выходит с другой стороны": "A hamster runs off one edge and comes back on the other",
+  "Края нет": "No edges",
+  "Убежал за край экрана — выбежал с другой стороны. Спрятаться негде, догнать можно всегда.": "Run off the edge of the screen and you come out on the other side. Nowhere to hide, and always someone to catch.",
+  "Как это выглядит": "What it looks like",
+  "Настоящие кадры из игры. Нажми на картинку, чтобы открыть крупно.": "Real in-game shots. Click a picture to open it full size.",
+  "Открыть скриншот замка крупно": "Open the castle screenshot full size",
+  "Открыть скриншот лобби крупно": "Open the lobby screenshot full size",
+  "Открыть скриншот пьедестала крупно": "Open the podium screenshot full size",
+  "Открыть скриншот меню крупно": "Open the menu screenshot full size",
+  "Открыть скриншот обучения крупно": "Open the tutorial screenshot full size",
+  "Ночной замок: факел на стене бьёт струёй огня над каменным карнизом, вокруг хомяки и цепи": "Night castle: a wall torch blasts a jet of fire over a stone ledge, with hamsters and chains around",
+  "Лобби на дереве: боты, время и убийства, выбор карты, бонусы, опасности и цвет": "The lobby on a tree: bots, time and kills, map choice, bonuses, hazards and color",
+  "Пьедестал: три хомяка на тумбах, сверху звания матча": "The podium: three hamsters on pedestals with match titles above",
+  "Главное меню: кнопки на ветках большого дерева и вывеска Hamster Massacre": "Main menu: buttons on the branches of a big tree and the Hamster Massacre sign",
+  "Краткое обучение: управление, как давить, бонусы": "Quick tutorial: controls, how to squash, bonuses",
+  "Замок": "Castle",
+  "Ночь, подвесные плиты на цепях и факелы, которые плюются огнём. Серии убийств объявляются на весь экран.": "Night, slabs hanging on chains and torches that spit fire. Kill streaks are announced across the whole screen.",
+  "Лобби": "Lobby",
+  "Хост выбирает карту, время, лимит убийств, бонусы и опасности. Каждый выбирает свободный цвет.": "The host picks the map, time, kill limit, bonuses and hazards. Everyone picks a free color.",
+  "Пьедестал": "Podium",
+  "Тройка лучших на тумбах и звания матча: «Мститель», «Любимая мишень», «Растяпа».": "The top three on pedestals and match titles like Avenger, Favourite target and Clumsy.",
+  "Меню": "Menu",
+  "Кнопки растут на ветках. По земле бегают хомяки, твой подписан ником.": "Buttons grow on branches. Hamsters run around below, and yours shows your nickname.",
+  "Как играть": "How to play",
+  "Всё обучение — три карточки за вопросиком в углу меню.": "The whole tutorial is three cards behind the question mark in the menu corner.",
+  "Что внутри": "What's inside",
+  "игроков": "players", "Онлайн с друзьями": "Online with friends",
+  "Лобби в Steam: друг видит твою игру и заходит в один клик. По локальной сети или IP тоже можно.": "Steam lobbies: a friend sees your game and joins in one click. LAN and direct IP work too.",
+  "карты": "maps", "Лес и Замок": "Forest and Castle",
+  "Ветки огромных деревьев днём и каменные карнизы ночного замка. У каждой карты своя музыка и звуки.": "Giant tree branches by day and the stone ledges of a castle at night. Each map has its own music and sounds.",
+  "цветов": "colors", "Свой хомяк": "Your hamster",
+  "Выбери цвет шерсти. Если твой занят, игра даст свободный, и его можно сменить в лобби.": "Pick a fur color. If yours is taken, the game gives you a free one, and you can change it in the lobby.",
+  "убийств": "kills", "Свои условия": "Your rules",
+  "Матч на время, до нужного числа убийств или с обоими условиями сразу. Нет друзей онлайн — добавь ботов.": "Play on time, to a kill limit, or both at once. No friends online? Add bots.",
+  "званий": "titles",
+  "После матча — тройка лучших и звания: «Самая длинная серия», «Мститель», «Неуловимый», «Пацифист» и другие.": "After the match: the top three and titles like Longest streak, Avenger, Untouchable, Pacifist and more.",
+  "«Пи!»": "“Squeak!”", "писк": "squeak", "Дразнилка": "Taunt",
+  "Отдельная кнопка, чтобы пискнуть на соперника после удачного прыжка. Слышат все.": "A button just for squeaking at a rival after a good stomp. Everyone hears it.",
+  "Бонусы и опасности": "Bonuses and hazards",
+  "И то, и другое хост включает в лобби отдельными галочками.": "The host turns each of them on with its own checkbox in the lobby.",
+  "Бонусы": "Bonuses", "Скорость": "Speed", "Бегаешь быстрее, 6 секунд.": "Run faster for 6 seconds.",
+  "Двойной прыжок": "Double jump", "Ещё один прыжок прямо в воздухе, 8 секунд.": "One more jump in mid-air, for 8 seconds.",
+  "Щит": "Shield", "Выдержит один прыжок на голову, 12 секунд.": "Survives one stomp on the head, lasts 12 seconds.",
+  "Опасности": "Hazards", "−1 очко": "−1 point",
+  "Жёлуди": "Acorns", "Лес. Качаются в кроне и падают сквозь ветки. Тень на земле подскажет, куда.": "Forest. They wobble in the canopy and drop through the branches. A shadow on the ground shows where.",
+  "Ёжик": "Hedgehog", "Лес. Идёт по земле от края до края. Перепрыгни или убегай.": "Forest. It walks along the ground from edge to edge. Jump over it or run.",
+  "Шипы": "Spikes", "Замок. Кусок пола светится красным, через секунду выскакивают шипы.": "Castle. A floor section glows red, and a second later spikes pop out.",
+  "Огонь": "Fire", "Замок. Факел на стене разгорается и бьёт струёй пламени над карнизом.": "Castle. A wall torch flares up and blasts a jet of fire over its ledge.",
+  "Управление": "Controls", "Клавиатура или геймпад — меню тоже проходится геймпадом.": "Keyboard or gamepad. The menus work with a gamepad too.",
+  "Стик": "Stick", "Бежать": "Run", "Пробел": "Space", "Прыжок": "Jump",
+  "Спрыгнуть с ветки, падать быстрее": "Drop through a branch, fall faster",
+  "Пискнуть на соперников": "Squeak at your rivals", "Пауза и громкость": "Pause and volume",
+  "Что дальше": "What's next",
+  "Над этим работаем в следующей версии, 3.0. Список живой: что-то появится раньше, что-то позже.": "This is what we're working on for the next version, 3.0. The list keeps changing: some things will land sooner, some later.",
+  "Карты": "Maps", "Новые арены": "New arenas",
+  "Космос": "Space", "без пола: упал вниз — вылетел сверху.": "with no floor: fall off the bottom, drop in from the top.",
+  "Ледяная пещера": "Ice cave", "со скользким полом.": "with a slippery floor.",
+  "Пещера с лавой": "Lava cave", ": пол убивает, прыгаем по камням.": ": the floor kills, so hop across the rocks.",
+  "Клетка хомяка": "Hamster cage", "с колесом, которое крутится и швыряет.": "with a wheel that spins and flings you.",
+  "Кухня": "Kitchen", "с полками и банками, за которыми можно спрятаться.": "with shelves and jars to hide behind.",
+  "Карта с": "A map with", "движущимися платформами": "moving platforms", "вверх-вниз и влево-вправо.": "going up, down, left and right.",
+  "Режимы": "Modes", "Не только «дави всех»": "More than squash-everyone",
+  "Король горы": "King of the hill", ": очки капают, пока стоишь в светящейся зоне.": ": score while you stand in the glowing zone.",
+  "Семечка": "Seed", ": у кого она, тот копит очки. Раздавишь его — семечка твоя.": ": whoever holds it scores. Squash them and the seed is yours.",
+  "Командный бой": "Team battle", "2 на 2 и 4 на 4.": "2v2 and 4v4.",
+  "Больше хаоса": "More chaos",
+  "Гигант": "Giant", ": вдвое больше на 8 секунд. Давить легче, но и попасть по тебе проще.": ": twice the size for 8 seconds. Easier to squash others, easier to get hit.",
+  "Пружина": "Spring", ": очень высокий прыжок.": ": a very high jump.",
+  "Призрак": "Ghost", ": соперники тебя почти не видят.": ": rivals can barely see you.",
+  "Магнит": "Magnet", ": бонусы сами летят к тебе.": ": bonuses fly to you.",
+  "Качающийся": "A swinging", "маятник": "pendulum", "в замке и": "in the castle and a", "осиное гнездо": "wasp nest", "в лесу.": "in the forest.",
+  "Компания": "Friends", "Веселее вместе": "Better together",
+  "Эмоции": "Emotes", "над головой: злость, смех, «ГГ».": "above your head: angry, laughing, “GG”.",
+  "Разминка в лобби": "Lobby warm-up", ": можно давить друг друга, пока ждёте старта.": ": squash each other while you wait for the start.",
+  "Игра за одним компьютером": "Couch play", "с несколькими геймпадами, вместе с онлайн-игроками.": "with several gamepads on one PC, together with online players.",
+  "Голосование": "Voting", "за следующую карту на пьедестале.": "for the next map on the podium.",
+  "Хомяк": "Hamster", "Свой стиль и история": "Style and history",
+  "Шапки": "Hats", ": колпак, рожки, пиратская шляпа.": ": party hat, horns, pirate hat.",
+  "Корона": "A crown", "победителю прошлого матча — пусть все охотятся на него.": "for the last match's winner, so everyone hunts them.",
+  "Статистика": "Stats", "за всё время: матчи, победы, лучшая серия.": "for all time: matches, wins, best streak.",
+  "Повтор": "A replay", "последнего убийства в замедлении перед пьедесталом.": "of the last kill in slow motion before the podium.",
+  "Своя страница": "Our own page", "Своё место в": "Our own place on",
+  ", чтобы игру можно было найти и добавить в желаемое.": ", so you can find the game and wishlist it.",
+  "Ввод ника": "Typing your nickname", "с геймпада": "with a gamepad", "через экранную клавиатуру Steam.": "via the Steam on-screen keyboard.",
+  "Есть идея? Предлагай в нашем Discord — лучшие попадут в список.": "Got an idea? Suggest it in our Discord — the best ones make the list.",
+  "Hamster Massacre · сделано на Godot · 2026": "Hamster Massacre · made with Godot · 2026",
+  "Русский и английский · Windows": "Russian and English · Windows",
+  "💬 Написать мне в Discord": "💬 Message me on Discord",
+  "Закрыть": "Close", "Скриншот крупно": "Screenshot, full size", "Пи!": "Squeak!",
+};
+
+// Румынский: те же русские фразы-ключи, что и в EN. Чего здесь нет, остаётся английским.
+const RO = {
+  "← Все проекты": "← Toate proiectele", "Сайт": "Site", "Язык": "Limbă",
+  "Онлайн-драка хомяков на одном экране.": "O încăierare online de hamsteri pe un singur ecran.",
+  "Прыгни сопернику на голову": "Sari-i adversarului pe cap",
+  ", пока он не прыгнул на твою.": ", înainte să sară el pe al tău.",
+  "Где играть": "Unde joci", "Посмотреть игру": "Vezi jocul", "скоро": "în curând",
+  "Матч в лесу: восемь хомяков на ветках, надпись «Kotleta — Двойное убийство!», по бокам карточки игроков": "Un meci în pădure: opt hamsteri pe crengi, un banner „Kotleta — Dublă ucidere!” și cardurile jucătorilor în ambele părți",
+  "Одно правило": "O singură regulă",
+  "Раздавить можно только сверху. Всё остальное — гонка по веткам за чужой головой.": "Poți strivi doar de sus. Restul e o cursă prin crengi după capul altcuiva.",
+  "Хомяк прыгает на голову другому": "Un hamster sare pe capul altuia",
+  "Дави сверху": "Strivește de sus",
+  "Приземлись сопернику на голову — он лопается, тебе очко. Через секунду он появится подальше от тебя.": "Aterizează pe capul unui adversar: el se sparge, iar tu primești un punct. După o secundă reapare departe de tine.",
+  "Два хомяка проходят друг сквозь друга": "Doi hamsteri trec unul prin altul",
+  "Сбоку не страшно": "Lateral nu e periculos",
+  "Сбоку и снизу хомяки проходят друг сквозь друга. Опасен только тот, кто выше тебя.": "Din lateral și de jos hamsterii trec direct unul prin altul. Periculos e doar cel care e deasupra ta.",
+  "Хомяк уходит за край экрана и выходит с другой стороны": "Un hamster iese pe o margine a ecranului și reapare pe cealaltă",
+  "Края нет": "Nu există margini",
+  "Убежал за край экрана — выбежал с другой стороны. Спрятаться негде, догнать можно всегда.": "Ieși pe marginea ecranului și apari pe cealaltă parte. Nu ai unde te ascunde și ai mereu pe cine prinde.",
+  "Как это выглядит": "Cum arată",
+  "Настоящие кадры из игры. Нажми на картинку, чтобы открыть крупно.": "Cadre reale din joc. Apasă pe o imagine ca s-o deschizi mare.",
+  "Открыть скриншот замка крупно": "Deschide captura cu castelul, mare",
+  "Открыть скриншот лобби крупно": "Deschide captura cu lobby-ul, mare",
+  "Открыть скриншот пьедестала крупно": "Deschide captura cu podiumul, mare",
+  "Открыть скриншот меню крупно": "Deschide captura cu meniul, mare",
+  "Открыть скриншот обучения крупно": "Deschide captura cu tutorialul, mare",
+  "Ночной замок: факел на стене бьёт струёй огня над каменным карнизом, вокруг хомяки и цепи": "Castel noaptea: o torță de pe perete aruncă un jet de foc peste un colț de piatră, cu hamsteri și lanțuri în jur",
+  "Лобби на дереве: боты, время и убийства, выбор карты, бонусы, опасности и цвет": "Lobby-ul pe un copac: boți, timp și ucideri, alegerea hărții, bonusuri, pericole și culoare",
+  "Пьедестал: три хомяка на тумбах, сверху звания матча": "Podiumul: trei hamsteri pe piedestaluri, cu titlurile meciului deasupra",
+  "Главное меню: кнопки на ветках большого дерева и вывеска Hamster Massacre": "Meniul principal: butoane pe ramurile unui copac mare și firma Hamster Massacre",
+  "Краткое обучение: управление, как давить, бонусы": "Tutorial scurt: controale, cum strivești, bonusuri",
+  "Замок": "Castelul",
+  "Ночь, подвесные плиты на цепях и факелы, которые плюются огнём. Серии убийств объявляются на весь экран.": "Noapte, plăci suspendate pe lanțuri și torțe care scuipă foc. Seriile de ucideri sunt anunțate pe tot ecranul.",
+  "Лобби": "Lobby",
+  "Хост выбирает карту, время, лимит убийств, бонусы и опасности. Каждый выбирает свободный цвет.": "Gazda alege harta, timpul, limita de ucideri, bonusurile și pericolele. Fiecare alege o culoare liberă.",
+  "Пьедестал": "Podiumul",
+  "Тройка лучших на тумбах и звания матча: «Мститель», «Любимая мишень», «Растяпа».": "Primii trei pe piedestaluri și titlurile meciului: Răzbunătorul, Ținta preferată, Neîndemânaticul.",
+  "Меню": "Meniu",
+  "Кнопки растут на ветках. По земле бегают хомяки, твой подписан ником.": "Butoanele cresc pe crengi. Jos aleargă hamsteri, iar al tău poartă numele tău.",
+  "Как играть": "Cum se joacă",
+  "Всё обучение — три карточки за вопросиком в углу меню.": "Tot tutorialul e în trei carduri, în spatele semnului de întrebare din colțul meniului.",
+  "Что внутри": "Ce conține",
+  "игроков": "jucători", "Онлайн с друзьями": "Online cu prietenii",
+  "Лобби в Steam: друг видит твою игру и заходит в один клик. По локальной сети или IP тоже можно.": "Lobby-uri Steam: un prieten vede jocul tău și intră cu un singur clic. Merge și prin rețea locală sau IP direct.",
+  "карты": "hărți", "Лес и Замок": "Pădurea și Castelul",
+  "Ветки огромных деревьев днём и каменные карнизы ночного замка. У каждой карты своя музыка и звуки.": "Crengile unor copaci uriași ziua și colțurile de piatră ale unui castel noaptea. Fiecare hartă are muzica și sunetele ei.",
+  "цветов": "culori", "Свой хомяк": "Hamsterul tău",
+  "Выбери цвет шерсти. Если твой занят, игра даст свободный, и его можно сменить в лобби.": "Alege culoarea blănii. Dacă a ta e luată, jocul îți dă una liberă, pe care o poți schimba în lobby.",
+  "убийств": "ucideri", "Свои условия": "Regulile tale",
+  "Матч на время, до нужного числа убийств или с обоими условиями сразу. Нет друзей онлайн — добавь ботов.": "Meci pe timp, până la un număr de ucideri sau cu ambele condiții deodată. N-ai prieteni online? Adaugă boți.",
+  "званий": "titluri",
+  "После матча — тройка лучших и звания: «Самая длинная серия», «Мститель», «Неуловимый», «Пацифист» и другие.": "După meci: primii trei și titluri precum Cea mai lungă serie, Răzbunătorul, De neatins, Pacifistul și altele.",
+  "«Пи!»": "„Pip!”", "писк": "piuit", "Дразнилка": "Zeflemea",
+  "Отдельная кнопка, чтобы пискнуть на соперника после удачного прыжка. Слышат все.": "Un buton separat ca să piui la adversar după o aterizare reușită. Toți aud.",
+  "Бонусы и опасности": "Bonusuri și pericole",
+  "И то, и другое хост включает в лобби отдельными галочками.": "Gazda le pornește pe amândouă din lobby, cu bife separate.",
+  "Бонусы": "Bonusuri", "Скорость": "Viteză", "Бегаешь быстрее, 6 секунд.": "Alergi mai repede, 6 secunde.",
+  "Двойной прыжок": "Salt dublu", "Ещё один прыжок прямо в воздухе, 8 секунд.": "Încă un salt direct în aer, 8 secunde.",
+  "Щит": "Scut", "Выдержит один прыжок на голову, 12 секунд.": "Rezistă la o aterizare pe cap, 12 secunde.",
+  "Опасности": "Pericole", "−1 очко": "−1 punct",
+  "Жёлуди": "Ghinde", "Лес. Качаются в кроне и падают сквозь ветки. Тень на земле подскажет, куда.": "Pădure. Se leagănă în coroană și cad printre crengi. Umbra de pe pământ arată unde.",
+  "Ёжик": "Ariciul", "Лес. Идёт по земле от края до края. Перепрыгни или убегай.": "Pădure. Merge pe pământ dintr-o margine în alta. Sari peste el sau fugi.",
+  "Шипы": "Țepii", "Замок. Кусок пола светится красным, через секунду выскакивают шипы.": "Castel. O bucată de podea se face roșie, iar după o secundă țâșnesc țepii.",
+  "Огонь": "Focul", "Замок. Факел на стене разгорается и бьёт струёй пламени над карнизом.": "Castel. O torță de pe perete se aprinde și aruncă un jet de flăcări peste colț.",
+  "Управление": "Controale", "Клавиатура или геймпад — меню тоже проходится геймпадом.": "Tastatură sau gamepad. Și meniurile se parcurg cu gamepad-ul.",
+  "Стик": "Stick", "Бежать": "Aleargă", "Пробел": "Spațiu", "Прыжок": "Salt",
+  "Спрыгнуть с ветки, падать быстрее": "Sari de pe o creangă, cazi mai repede",
+  "Пискнуть на соперников": "Piuie la adversari", "Пауза и громкость": "Pauză și volum",
+  "Что дальше": "Ce urmează",
+  "Над этим работаем в следующей версии, 3.0. Список живой: что-то появится раньше, что-то позже.": "La asta lucrăm pentru versiunea următoare, 3.0. Lista se schimbă: unele lucruri apar mai devreme, altele mai târziu.",
+  "Карты": "Hărți", "Новые арены": "Arene noi",
+  "Космос": "Spațiul", "без пола: упал вниз — вылетел сверху.": "fără podea: cazi jos și reapari sus.",
+  "Ледяная пещера": "Peștera de gheață", "со скользким полом.": "cu podea alunecoasă.",
+  "Пещера с лавой": "Peștera cu lavă", ": пол убивает, прыгаем по камням.": ": podeaua omoară, sărim pe pietre.",
+  "Клетка хомяка": "Cușca hamsterului", "с колесом, которое крутится и швыряет.": "cu o roată care se învârte și te aruncă.",
+  "Кухня": "Bucătăria", "с полками и банками, за которыми можно спрятаться.": "cu rafturi și borcane în spatele cărora te poți ascunde.",
+  "Карта с": "O hartă cu", "движущимися платформами": "platforme mobile", "вверх-вниз и влево-вправо.": "sus-jos și stânga-dreapta.",
+  "Режимы": "Moduri", "Не только «дави всех»": "Nu doar „strivește-i pe toți”",
+  "Король горы": "Regele dealului", ": очки капают, пока стоишь в светящейся зоне.": ": primești puncte cât stai în zona luminoasă.",
+  "Семечка": "Sămânța", ": у кого она, тот копит очки. Раздавишь его — семечка твоя.": ": cine o ține adună puncte. Dacă-l strivești, sămânța e a ta.",
+  "Командный бой": "Luptă în echipe", "2 на 2 и 4 на 4.": "2 contra 2 și 4 contra 4.",
+  "Больше хаоса": "Mai mult haos",
+  "Гигант": "Uriașul", ": вдвое больше на 8 секунд. Давить легче, но и попасть по тебе проще.": ": de două ori mai mare, 8 secunde. E mai ușor să strivești, dar și să fii lovit.",
+  "Пружина": "Arcul", ": очень высокий прыжок.": ": un salt foarte înalt.",
+  "Призрак": "Fantoma", ": соперники тебя почти не видят.": ": adversarii abia te văd.",
+  "Магнит": "Magnetul", ": бонусы сами летят к тебе.": ": bonusurile vin singure spre tine.",
+  "Качающийся": "Un", "маятник": "pendul", "в замке и": "legănat în castel și un", "осиное гнездо": "cuib de viespi", "в лесу.": "în pădure.",
+  "Компания": "Prieteni", "Веселее вместе": "Mai distractiv împreună",
+  "Эмоции": "Emoticoane", "над головой: злость, смех, «ГГ».": "deasupra capului: furie, râs, „GG”.",
+  "Разминка в лобби": "Încălzire în lobby", ": можно давить друг друга, пока ждёте старта.": ": vă puteți strivi unii pe alții cât așteptați startul.",
+  "Игра за одним компьютером": "Joc pe același calculator", "с несколькими геймпадами, вместе с онлайн-игроками.": "cu mai multe gamepad-uri, împreună cu jucătorii online.",
+  "Голосование": "Votul", "за следующую карту на пьедестале.": "pentru următoarea hartă, la podium.",
+  "Хомяк": "Hamsterul", "Свой стиль и история": "Stil propriu și istorie",
+  "Шапки": "Pălării", ": колпак, рожки, пиратская шляпа.": ": coif de petrecere, coarne, pălărie de pirat.",
+  "Корона": "O coroană", "победителю прошлого матча — пусть все охотятся на него.": "pentru câștigătorul meciului trecut, ca toți să vâneze după el.",
+  "Статистика": "Statistici", "за всё время: матчи, победы, лучшая серия.": "pe toată durata: meciuri, victorii, cea mai bună serie.",
+  "Повтор": "O reluare", "последнего убийства в замедлении перед пьедесталом.": "a ultimei ucideri, cu încetinitorul, înainte de podium.",
+  "Своя страница": "Pagina proprie", "Своё место в": "Un loc al nostru pe",
+  ", чтобы игру можно было найти и добавить в желаемое.": ", ca jocul să poată fi găsit și adăugat în lista de dorințe.",
+  "Ввод ника": "Scrierea numelui", "с геймпада": "cu gamepad-ul", "через экранную клавиатуру Steam.": "prin tastatura de pe ecran din Steam.",
+  "Есть идея? Предлагай в нашем Discord — лучшие попадут в список.": "Ai o idee? Propune-o pe Discord-ul nostru — cele mai bune intră în listă.",
+  "Hamster Massacre · сделано на Godot · 2026": "Hamster Massacre · făcut în Godot · 2026",
+  "Русский и английский · Windows": "Rusă și engleză · Windows",
+  "💬 Написать мне в Discord": "💬 Scrie-mi pe Discord",
+  "Закрыть": "Închide", "Скриншот крупно": "Captură mare", "Пи!": "Pip!",
+};
+
+// Запоминаем русские тексты и подписи один раз, потом подставляем нужный язык
+const texts = [];
+const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+  acceptNode: n => n.parentElement && !n.parentElement.closest("script, style") && n.nodeValue.trim()
+    ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+});
+while (walker.nextNode()) texts.push({ node: walker.currentNode, ru: walker.currentNode.nodeValue });
+const attrs = [];
+document.querySelectorAll("[alt], [aria-label]").forEach(el => {
+  ["alt", "aria-label"].forEach(name => { if (el.hasAttribute(name)) attrs.push({ el, name, ru: el.getAttribute(name) }); });
+});
+
+let currentLang = "ru";
+function setLang(lang) {
+  // Romanian falls back to English for any phrase that is not translated yet
+  const dict = lang === "en" ? EN : lang === "ro" ? { ...EN, ...RO } : null;
+  texts.forEach(({ node, ru }) => {
+    const key = ru.trim();
+    node.nodeValue = dict && dict[key] ? ru.replace(key, dict[key]) : ru;
+  });
+  attrs.forEach(({ el, name, ru }) => el.setAttribute(name, dict && dict[ru] ? dict[ru] : ru));
+  document.documentElement.lang = lang;
+  currentLang = lang;
+  document.querySelectorAll(".lang-switch button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  try { localStorage.setItem("lang", lang); } catch { /* хранилище недоступно - просто не запоминаем */ }
+}
+document.querySelectorAll(".lang-switch button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
+
+// --- «Написать мне в Discord»: чат по нику открыть нельзя, поэтому копируем ник и подсказываем ---
+const DISCORD_NICK = "diethisway";
+const DISCORD_ID = "277193997762428928"; // с ним кнопка открывает профиль в Discord
+const DISCORD_MSG = {
+  ru: ok => ok ? `Ник скопирован: ${DISCORD_NICK}. Найди меня в Discord и пиши.` : `Мой ник в Discord: ${DISCORD_NICK}`,
+  en: ok => ok ? `Username copied: ${DISCORD_NICK}. Find me on Discord and say hi.` : `My Discord username: ${DISCORD_NICK}`,
+  ro: ok => ok ? `Nume copiat: ${DISCORD_NICK}. Caută-mă pe Discord și scrie-mi.` : `Numele meu pe Discord: ${DISCORD_NICK}`,
+};
+document.getElementById("discord-btn").addEventListener("click", async () => {
+  if (DISCORD_ID) { window.open(`https://discord.com/users/${DISCORD_ID}`, "_blank", "noopener"); return; }
+  let ok = false;
+  try { await navigator.clipboard.writeText(DISCORD_NICK); ok = true; } catch {
+    const area = document.createElement("textarea");
+    area.value = DISCORD_NICK; area.style.position = "fixed"; area.style.opacity = "0";
+    document.body.appendChild(area); area.select();
+    try { ok = document.execCommand("copy"); } catch { /* буфер недоступен */ }
+    area.remove();
+  }
+  let toast = document.getElementById("footer-toast");
+  if (!toast) { toast = document.createElement("div"); toast.id = "footer-toast"; toast.className = "footer-toast"; toast.setAttribute("role", "status"); document.body.appendChild(toast); }
+  toast.textContent = DISCORD_MSG[currentLang](ok);
+  toast.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove("show"), 3500);
+});
+let savedLang = "ru";
+try { const stored = localStorage.getItem("lang"); savedLang = stored === "en" || stored === "ro" ? stored : "ru"; } catch { /* по умолчанию русский */ }
+setLang(savedLang);
+</script>
+
+</body>
+</html>
